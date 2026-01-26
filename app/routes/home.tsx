@@ -1,7 +1,7 @@
 import type { Route } from "./+types/home";
 import Navbar from "~/components/Navbar";
 import {resumes} from "../../constants"
-
+import ResumeCard from "~/components/ResumeCard";
 export function meta({}: Route.MetaArgs) {
   return [
     { title: "Resumind" },
@@ -20,12 +20,16 @@ export default function Home() {
             <h2>Review your submissions and check AI-powered feedback.</h2>
           </div>
         </section>
+          {resumes.length > 0 && (
 
-        {resumes.map((resume) => (
-            <div key={resume.id}>
-              <h1>{resume.jobTitle}</h1>
-            </div>
-        ))}
+
+        <div className="resumes-section flex flex-col items-center gap-6 ">
+            {resumes.map((resume) => (
+                <ResumeCard key={resume.id} resume={resume} />
+            ))}
+        </div>
+
+          )}
       </main>
   );
 }
