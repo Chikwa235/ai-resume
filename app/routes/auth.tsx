@@ -1,4 +1,6 @@
 import {usePuterStore} from "~/lib/puter";
+import {useEffect} from "react";
+import {useLocation, useNavigate} from "react-router";
 
 export const meta: () => { title: string; name?: string; content?: string }[] = () => [
     { title: "Resumind | Auth" },
@@ -7,6 +9,16 @@ export const meta: () => { title: string; name?: string; content?: string }[] = 
 
 const Auth: () => React.JSX.Element = () => {
     const { isLoading, auth } = usePuterStore();
+    const location: any = useLocation();
+    const next:string = location.search.split('next=')[1];
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (auth.isAuthenticated) {
+            navigate(next);
+        }
+    }, [auth.isAuthenticated, navigate, next]);
+
 
     return (
         <main className="bg-[url('bg-auth.svg')] bg-cover min-h-screen flex items-center justify-center">
