@@ -3,6 +3,8 @@ import express from "express";
 import cors from "cors";
 import OpenAI from "openai";
 
+
+console.log("API KEY:", process.env.OPENAI_API_KEY);
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "2mb" }));
