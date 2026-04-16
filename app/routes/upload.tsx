@@ -132,7 +132,7 @@ const Upload = () => {
     let res: Response;
     try {
       console.log("[6] calling backend /api/feedback ...");
-      res = await fetch("http://localhost:3001/api/feedback", {
+      res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ jobTitle, jobDescription, resumeText }),
