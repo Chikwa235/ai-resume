@@ -7,7 +7,7 @@ import { convertPdfToImage } from "~/lib/pdf2img";
 import { generateUUID } from "~/lib/utils";
 
 const Upload = () => {
-  const { fs, kv } = usePuterStore(); // ✅ removed `ai`
+  const { fs, kv } = usePuterStore();
   const navigate = useNavigate();
 
   const [isProcessing, setIsProcessing] = useState(false);
@@ -44,7 +44,8 @@ const Upload = () => {
     }
     if (!uploadedFile) {
       setIsProcessing(false);
-      return setStatusText("Error: Failed to upload file");
+      setStatusText("Error: Failed to upload file");
+      return;
     }
 
     // 2) Convert to image (for OCR)
@@ -62,7 +63,8 @@ const Upload = () => {
     }
     if (!imageFile?.file) {
       setIsProcessing(false);
-      return setStatusText("Error: Failed to convert PDF to image");
+      setStatusText("Error: Failed to convert PDF to image");
+      return;
     }
 
     // 3) Upload image to Puter FS
@@ -80,7 +82,8 @@ const Upload = () => {
     }
     if (!uploadedImage) {
       setIsProcessing(false);
-      return setStatusText("Error: Failed to upload image");
+      setStatusText("Error: Failed to upload image");
+      return;
     }
 
     // 4) Save initial record
@@ -113,7 +116,7 @@ const Upload = () => {
     try {
       console.log("[5] running tesseract OCR...");
       const { ocrImageFile } = await import("~/lib/ocr");
-      resumeText = await ocrImageFile(imageFile.file); // ✅ use PNG file directly
+      resumeText = await ocrImageFile(imageFile.file);
       console.log("[5] resumeText length:", resumeText.length);
     } catch (e) {
       console.error("OCR error:", e);
@@ -124,10 +127,18 @@ const Upload = () => {
 
     if (!resumeText || resumeText.trim().length < 50) {
       setIsProcessing(false);
-      return setStatusText("Error: OCR returned empty/too short text");
+      setStatusText("Error: OCR returned empty/too short text");
+      return;
     }
 
-    // 6) Call Express server (OpenAI)
+    // OPTIONAL: truncate to reduce payload size (helps avoid 413 / function limits)
+    const MAX_CHARS = 20000;
+    const trimmedResumeText =
+      resumeText.length > MAX_CHARS ? resumeText.slice(0, MAX_CHARS) : resumeText;
+
+    console.log("[6] sending chars:", trimmedResumeText.length);
+
+    // 6) Call backend (/api/feedback on Vercel; proxied to local server in dev)
     setStatusText("Analyzing with OpenAI...");
     let res: Response;
     try {
@@ -135,21 +146,25 @@ const Upload = () => {
       res = await fetch("/api/feedback", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ jobTitle, jobDescription, resumeText }),
+        body: JSON.stringify({
+          jobTitle,
+          jobDescription,
+          resumeText: trimmedResumeText,
+        }),
       });
-      console.log("[6] backend status:", res.status);
+      console.log("[6] backend status:", res.status, res.statusText);
     } catch (e) {
       console.error("fetch backend failed:", e);
       setIsProcessing(false);
-      setStatusText("Error: server request failed (is backend running?)");
+      setStatusText("Error: server request failed");
       return;
     }
 
     if (!res.ok) {
       const errText = await res.text();
-      console.error("Backend error:", errText);
+      console.error("Backend error:", res.status, res.statusText, errText);
       setIsProcessing(false);
-      setStatusText("Error: Failed to analyze resume (server)");
+      setStatusText(`Error: Failed to analyze resume (server ${res.status})`);
       return;
     }
 
@@ -158,7 +173,8 @@ const Upload = () => {
       feedback = await res.json();
       console.log("[6] feedback received:", feedback);
     } catch (e) {
-      console.error("Failed to parse backend JSON:", e);
+      const raw = await res.text().catch(() => "");
+      console.error("Failed to parse backend JSON:", e, raw);
       setIsProcessing(false);
       setStatusText("Error: server returned invalid JSON");
       return;
@@ -193,7 +209,6 @@ const Upload = () => {
     const jobDescription = (formData.get("job-description") as string) || "";
 
     if (!file) return;
-
     handleAnalyze({ companyName, jobTitle, jobDescription, file });
   };
 
