@@ -8,5 +8,5 @@ export default [
   route("/wipe", "routes/wipe.tsx"),
 
   // Resource route for your POST endpoint
-  route("/api/feedback", "routes/api.feedback.ts"),
+  
 ] satisfies RouteConfig;
