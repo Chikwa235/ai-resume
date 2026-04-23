@@ -1,12 +1,12 @@
 # AI Resume Analyzer
 
-AI-powered resume analysis and job matching built with **React + TypeScript**. Upload and store multiple resumes, paste a job description, and get an **ATS-style score** plus targeted feedback to improve alignment—all handled in the browser using **Puter.js** (no custom backend required).
+I built an AI Resume Analyzer using React + TypeScript. Users can upload and store multiple resumes, paste a job description, and the app returns an ATS-style match score plus targeted recommendations. The frontend handles the upload flow and results UI, and a lightweight Node/Express backend handles the analysis request and calls AI for feedback. I deployed the frontend on render and used environment variables for the AI key.
 
 ---
 
 ## Demo
 
-- **Live Demo:** https://ai-resume-aw2w0mmcn-chikwa235s-projects.vercel.app/
+- **Live Demo:** https://ai-resume-1-l8l2.onrender.com/
 
 ## Screenshots
 
